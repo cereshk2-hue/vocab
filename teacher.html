@@ -175,6 +175,7 @@ tr.st:hover td{background:var(--bg)}
 <script>
 (function () {
   /* ---------- 설정 ---------- */
+  var BUILD = '20261111-1317';
   var API = 'https://script.google.com/macros/s/AKfycbxFdWbjp32WVN9Q8FfHIdXYSagbePYxfbFWombtbAB4DkHT27asKAj7_1Y6lgB9iUcJ/exec';
   var PIN = '6900';
   var BASE = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '');
@@ -495,8 +496,21 @@ tr.st:hover td{background:var(--bg)}
 
   render();
   if (key()) load();
+
+  /* 새 버전 자동 확인: GitHub에 새 teacher.html을 올리면 열 때 저절로 바뀜 */
+  function checkUpdate() {
+    fetch(location.pathname + '?_=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (t) {
+      var m = /var BUILD = '([^']+)'/.exec(t);
+      if (!m || m[1] === BUILD) return;
+      var tried = ''; try { tried = sessionStorage.getItem('vb_upd') || ''; } catch (e) {}
+      if (tried === m[1]) return;
+      try { sessionStorage.setItem('vb_upd', m[1]); } catch (e) {}
+      location.replace(location.pathname + '?v=' + m[1]);
+    }, function () {});
+  }
+  checkUpdate();
   
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && key() && DATA && Date.now() - DATA.at > 60000) load(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) return; checkUpdate(); if (key() && DATA && Date.now() - DATA.at > 60000) load(); });
 })();
 </script>
 </body>
