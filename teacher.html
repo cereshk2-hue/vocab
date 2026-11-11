@@ -45,7 +45,7 @@ a{color:inherit}
 .lv h2{margin:10px 0 0;font-size:24px;letter-spacing:-.02em}
 .lv .s{color:var(--sub);font-size:14px}
 .qr{border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center;background:#fff;cursor:zoom-in;flex:none}
-.qr .box{width:118px;height:118px;display:grid;place-items:center}
+.qr .box{width:132px;height:132px;display:grid;place-items:center}
 .qr .box svg{width:100%;height:100%}
 .qr small{display:block;color:var(--sub);font-size:12px;margin-top:4px}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
@@ -55,6 +55,15 @@ a{color:inherit}
 .dayl{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;font-size:14px;color:var(--sub)}
 .dayl input{width:76px;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
 .msg{margin-top:18px}
+.card[style*="--c"]{border-top:6px solid var(--c)}
+.lsum{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+.lst{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.lst b{display:block;font-size:22px;font-weight:900;letter-spacing:-.02em}
+.lst span{font-size:11px;color:var(--sub);font-weight:700}
+.ltop{margin-top:12px;font-size:12px;color:var(--sub);font-weight:700;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ltop span{background:var(--bg);color:var(--ink);border-radius:999px;padding:3px 10px;font-weight:800}
+.ltop i{font-style:normal;color:var(--bad);margin-left:2px}
+.lgo{margin-top:12px;width:100%;border:0;border-radius:14px;padding:11px;font-weight:800;background:color-mix(in srgb,var(--c) 12%,#fff);color:var(--c)}
 .msg textarea{width:100%;min-height:120px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:14px;padding:12px;resize:vertical}
 
 /* 현황판 */
@@ -117,6 +126,30 @@ tr.st:hover td{background:var(--bg)}
 .keybox input{font:inherit;font-size:18px;padding:12px 14px;border:2px solid var(--line);border-radius:14px;width:100%;margin:12px 0}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px}
 @keyframes sp{to{transform:rotate(360deg)}}
+.psheet{position:fixed;inset:0;z-index:80;background:var(--bg);overflow:auto;padding:16px}
+.psheet .pbar{display:flex;gap:8px;align-items:center;max-width:1000px;margin:0 auto 12px;height:auto;background:none;overflow:visible}
+.psheet .pbar .sp{flex:1}
+.ppage{max-width:1000px;margin:0 auto;background:#fff;border-radius:24px;padding:32px;box-shadow:var(--shadow)}
+.ptitle{font-size:30px;font-weight:900;letter-spacing:-.02em;text-align:center}
+.psub{text-align:center;color:var(--sub);margin:6px 0 22px;font-size:16px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:700px){.pgrid{grid-template-columns:1fr}}
+.pq{border:3px solid var(--c);border-radius:22px;padding:16px;text-align:center}
+.pq svg{width:100%;height:auto;display:block}
+.pqh{font-size:20px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.pqh span{background:var(--c);color:#fff;border-radius:10px;width:34px;height:34px;display:grid;place-items:center}
+.pqu{font-size:11px;color:var(--sub);margin-top:8px;word-break:break-all}
+.pfoot{text-align:center;color:var(--sub);font-size:14px;margin-top:20px}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body.printing>*:not(.psheet),.no-print{display:none!important}
+  html,body.printing{background:#fff!important;height:auto}
+  body.printing{background:#fff}
+  .psheet{position:static;padding:0;background:#fff}
+  .ppage{box-shadow:none;border-radius:0;padding:0;max-width:none}
+  .pgrid{grid-template-columns:repeat(3,1fr)!important}
+  .pq{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -131,8 +164,8 @@ tr.st:hover td{background:var(--bg)}
       <button class="hb ghost" id="install" style="display:none">⊕ 앱으로 설치</button>
     </div>
     <div class="tabs">
+      <button class="tab" data-tab="links">단계별 한눈에</button>
       <button class="tab" data-tab="dash">학생 현황판</button>
-      <button class="tab" data-tab="links">학생 링크 · QR</button>
     </div>
   </section>
   <main id="main"></main>
@@ -151,6 +184,15 @@ tr.st:hover td{background:var(--bg)}
     { id: 'M', title: '데일리보카 M', file: 'm.html', days: 80, color: '#7b4fd8' }
   ];
   var LV = {}; LEVELS.forEach(function (l) { LV[l.id] = l; });
+  /* 단계별 학생 링크 QR (보드 안에 저장 — 인터넷이 막혀도 보임) */
+  var QRS = {"B": "29:8tq64f,4jcif5,6gmvrx,6gca59,6h4pct,4ij48x,8tz2pr,focg,5w9iqa,8sf7m1,4dn7uf,5kfgw2,8tgu6j,bycax,3gu80b,7ivcmi,5cepkb,1tggr1,4y90kz,2stg0a,4thkog,y61j,8tlbob,4iwly0,6h6l83,6gqto7,6hbxdl,4ifseq,8uaiab", "H": "33:3x2w1of,20cnpz5,2vg54d9,2vg94d9,2vfcaql,20mkx1d,3xbl6yn,2owlc,2bo195s,2a774kj,2tyvq5x,1hp1cbc,lntmfe,2jlbywr,3tf3r9u,2b83u5u,35321jm,1b7nlii,2mydkw7,247jbj5,27cudfm,1azztxn,34kuku5,1up2uqg,2n2zx0w,axli3,3wz1vmm,20gkzkh,2vgqnlk,2vizo0i,2ve7or5,207joug,3x8ezve", "M": "33:3xf6min,20mrjup,2vekevx,2vqjrrx,2vefhb1,2078rwh,3xbl6yn,frbb4,2tqvxvv,3cous8d,3xcybp7,dgk5pl,20rqpbv,3cx22h6,1ss2nw,1962198,qjhwbg,1kg1yaj,29zg2uu,rijvio,gw3vv0,2ai7ef9,ykhqb7,18kobqh,2rosctt,dp9ga,3xc1gsw,20kz76n,2vbb8qe,2voew4j,2vkf6n4,20cw73t,3xamw7o"};
+  function staticQr(id) {
+    var v = QRS[id]; if (!v) return '';
+    var n = +v.split(':')[0], rows = v.split(':')[1].split(','), p = '';
+    rows.forEach(function (r, y) { var b = parseInt(r, 36).toString(2); while (b.length < n) b = '0' + b;
+      for (var x = 0; x < n; x++) if (b[x] === '1') p += 'M' + x + ' ' + y + 'h1v1h-1z'; });
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 ' + (n + 4) + ' ' + (n + 4) + '" shape-rendering="crispEdges"><rect x="-2" y="-2" width="' + (n + 4) + '" height="' + (n + 4) + '" fill="#fff"/><path d="' + p + '" fill="#000"/></svg>';
+  }
 
   /* ---------- 공통 ---------- */
   var $main = document.getElementById('main');
@@ -176,15 +218,16 @@ tr.st:hover td{background:var(--bg)}
   function pct(s) { var m = /^(\d+)\s*\/\s*(\d+)$/.exec(String(s)); return m && +m[2] ? Math.round(100 * m[1] / m[2]) : null; }
   function cls(p) { return p == null ? '' : p >= 90 ? 'g' : p >= 70 ? 'm' : 'r'; }
   function qrSvg(text, cell) {
+    for (var i = 0; i < LEVELS.length; i++) if (link(LEVELS[i]) === text) return staticQr(LEVELS[i].id);
     if (!window.qrcode) return '<span style="font-size:12px;color:#999">QR 불러오는 중</span>';
     var q = qrcode(0, 'M'); q.addData(text); q.make();
     return q.createSvgTag({ cellSize: cell || 4, margin: 0, scalable: true });
   }
 
   /* ---------- 탭 ---------- */
-  var tab = ls('vb_tab') || 'dash';
+  var tab = ls('vb_tab2') || 'links';
   document.querySelectorAll('.tab').forEach(function (b) {
-    b.onclick = function () { tab = b.dataset.tab; ls('vb_tab', tab); render(); };
+    b.onclick = function () { tab = b.dataset.tab; ls('vb_tab2', tab); render(); scrollTo(0, 0); };
   });
 
   /* ---------- 앱 설치 ---------- */
@@ -269,6 +312,21 @@ tr.st:hover td{background:var(--bg)}
     document.getElementById('kin').onkeydown = function (e) { if (e.key === 'Enter') go(); };
   }
 
+  function lvSummary(l) {
+    if (!DATA) return '<div class="lsum"><div class="note" style="margin:0">' + (key() ? (loading ? '<span class="spin"></span> 학생 기록 불러오는 중…' : '학생 기록을 불러오지 못했어요.') : '보드 열쇠를 넣으면 학생 현황이 보여요.') + '</div></div>';
+    var who = {}, today = {}, sum = 0, n = 0, week = 0, W = {}, td = dkey(Date.now());
+    (DATA.hw || []).forEach(function (h) { if (h.level !== l.id) return; who[h.name] = 1; if (dkey(h.t) === td) today[h.name] = 1;
+      var p = pct(h.score); if (p != null) { sum += p; n++; if (daysAgo(h.done || h.t) < 7) week++; } });
+    (DATA.wrong || []).forEach(function (w) { if (w.level !== l.id) return; who[w.name] = 1; if (dkey(w.t) === td) today[w.name] = 1;
+      var o = W[w.w] || (W[w.w] = { w: w.w, n: 0 }); o.n++; });
+    var top = Object.keys(W).map(function (k) { return W[k]; }).sort(function (a, b) { return b.n - a.n; }).slice(0, 3);
+    var avg = n ? Math.round(sum / n) : null;
+    return '<div class="lsum"><div class="lst"><div><b>' + Object.keys(who).length + '</b><span>시작한 학생</span></div><div><b>' + Object.keys(today).length + '</b><span>오늘 공부</span></div>' +
+      '<div><b>' + week + '</b><span>7일 완료</span></div><div><b class="' + cls(avg) + '">' + (avg == null ? '—' : avg + '%') + '</b><span>평균</span></div></div>' +
+      (top.length ? '<div class="ltop">많이 틀린 단어 ' + top.map(function (t) { return '<span>' + E(t.w) + ' <i>' + t.n + '</i></span>'; }).join('') + '</div>' : '') +
+      '<button class="lgo" data-go="' + l.id + '">' + l.title + ' 학생 현황 보기 →</button></div>';
+  }
+
   function renderLinks() {
     var h = '<div class="grid3">';
     LEVELS.forEach(function (l, i) {
@@ -281,9 +339,11 @@ tr.st:hover td{background:var(--bg)}
         '<button class="btn" data-cp="' + i + '">학생 링크 복사</button></div>' +
         '<a class="url" href="' + E(u) + '" target="_blank" rel="noopener">' + E(u) + '</a>' +
         '<div class="dayl">특정 날짜 링크 <input type="number" min="1" max="' + l.days + '" placeholder="일차" id="d' + i + '"> <button class="btn" data-cpd="' + i + '">복사</button></div>' +
-        '</div>';
+        lvSummary(l) + '</div>';
     });
     h += '</div>';
+    h += '<div class="card msg"><h3>아이패드 · 교실용 QR 인쇄</h3><div class="note" style="margin-top:0">세 단계 QR을 A4 한 장에 크게 모아 인쇄해요. 학원 아이패드 옆에 붙여 두거나, 아이패드 카메라로 화면의 QR을 찍어도 돼요.</div>' +
+      '<div class="row"><button class="btn pri" id="pq">QR 인쇄하기</button><button class="btn" id="pv">크게 띄우기 (화면용)</button></div></div>';
     var msg = '[데일리보카 매일 학습]\n링크를 열고 이름(띄어쓰기 없이)과 내가 정한 숫자 4자리를 넣어 주세요.\n숫자 4자리는 다른 폰에서 들어갈 때도 필요하니 꼭 기억하세요!\n\n' +
       LEVELS.map(function (l) { return '▶ ' + l.title + '\n' + link(l); }).join('\n\n');
     h += '<div class="card msg"><h3>카카오톡 안내문</h3><textarea id="msg">' + E(msg) + '</textarea>' +
@@ -300,7 +360,23 @@ tr.st:hover td{background:var(--bg)}
         z.innerHTML = '<div class="zc"><h3>' + E(l.title) + '</h3>' + qrSvg(link(l), 10) + '<div class="note">화면을 누르면 닫혀요</div></div>';
         z.onclick = function () { z.remove(); }; document.body.appendChild(z); };
     });
+    $main.querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { F.lv = b.dataset.go; ls('vb_lv', F.lv); tab = 'dash'; ls('vb_tab2', tab); render(); scrollTo(0, 0); }; });
+    document.getElementById('pq').onclick = function () { printSheet(true); };
+    document.getElementById('pv').onclick = function () { printSheet(false); };
     document.getElementById('cpmsg').onclick = function () { copy(document.getElementById('msg').value, '안내문을 복사했어요'); };
+  }
+
+  function printSheet(doPrint) {
+    var w = document.createElement('div'); w.className = 'psheet';
+    w.innerHTML = '<div class="pbar no-print"><b>QR 모음</b><span class="sp"></span>' + (doPrint ? '' : '<button class="btn pri" id="pp">인쇄</button>') + '<button class="btn" id="px">닫기</button></div>' +
+      '<div class="ppage"><div class="ptitle">데일리보카 · 매일 단어 학습</div><div class="psub">아이패드 카메라로 내 단계 QR을 찍고 → 이름과 내 숫자 4자리를 넣어요</div><div class="pgrid">' +
+      LEVELS.map(function (l) { return '<div class="pq" style="--c:' + l.color + '"><div class="pqh"><span>' + l.id + '</span>' + E(l.title) + '</div>' + staticQr(l.id) + '<div class="pqu">' + E(link(l).replace('https://', '')) + '</div></div>'; }).join('') +
+      '</div><div class="pfoot">공용 아이패드에서는 다 끝나면 홈 화면 오른쪽 위 「이름 · 다른 이름」을 눌러 나와 주세요.</div></div>';
+    document.body.appendChild(w); document.body.classList.add('printing');
+    var close = function () { w.remove(); document.body.classList.remove('printing'); };
+    w.querySelector('#px').onclick = close;
+    var pp = w.querySelector('#pp'); if (pp) pp.onclick = function () { window.print(); };
+    if (doPrint) setTimeout(function () { window.print(); }, 200);
   }
 
   function renderDash() {
@@ -311,7 +387,8 @@ tr.st:hover td{background:var(--bg)}
     var all = build();
     var list = all.filter(inLv).filter(function (s) { return !F.q || s.name.indexOf(F.q) >= 0; });
     var today = dkey(Date.now());
-    var todayN = all.filter(function (s) { return s.last && dkey(s.last) === today; }).length;
+    var todayN = F.lv === 'ALL' ? all.filter(function (s) { return s.last && dkey(s.last) === today; }).length
+      : list.filter(function (s) { var L = s.lv[F.lv]; return L && L.lastT && dkey(L.lastT) === today; }).length;
     var weekDone = 0, sum = 0, n = 0;
     (DATA.hw || []).forEach(function (hh) {
       if (F.lv !== 'ALL' && hh.level !== F.lv) return;
@@ -418,7 +495,7 @@ tr.st:hover td{background:var(--bg)}
 
   render();
   if (key()) load();
-  window.addEventListener('load', function () { if (tab === 'links') renderLinks(); });
+  
   document.addEventListener('visibilitychange', function () { if (!document.hidden && key() && DATA && Date.now() - DATA.at > 60000) load(); });
 })();
 </script>
