@@ -5,8 +5,8 @@
   "start_url": "teacher.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f4f8",
-  "theme_color": "#1d2340",
+  "background_color": "#f7f3f2",
+  "theme_color": "#4a0f1f",
   "lang": "ko",
   "icons": [
     { "src": "teacher-icon-192.png", "sizes": "192x192", "type": "image/png" },
